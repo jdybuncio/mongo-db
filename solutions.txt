@@ -1,0 +1,53 @@
+#open up bash server (assuming mongodb docker container is running)
+docker exec -it mongoserver bash 
+
+#navigate to data in bash and then import json file into mongodb server 
+mongoimport --db clicks --collection log < click_log.json 
+
+#start mongo
+mongo
+
+####### in mongo #######
+
+> show dbs
+> use clicks
+> db.help()
+> db.getCollectionNames()
+
+> db.log.findOne()
+> db.log.find().limit(10)
+
+> db.log.find({cy: 'San Francisco'})
+> db.log.find({cy: 'San Francisco'}).count()
+
+> db.log.distinct('a').length
+
+> db.log.distinct('a', { $or: [ {a:/^Mozilla/}, {a:/^Opera/}] } ).length
+> db.log.find('a', { $or: [ {a:/^Mozilla/}, {a:/^Opera/}] } ).count()
+
+> typeof db.log.findOne({'t': {$exists: true}}).t
+> new Date(db.log.findOne({'t': {$exists: true}}).t*1000)
+
+> db.log.find({'t': {$exists: true}}).forEach(function(entry) { 
+    var updatedDate = new Date(entry.t *1000) 
+    db.log.update({_id: entry._id},{$set: {'t':updatedDate}}); 
+    })
+> db.log.findOne({'t': {$exists: true}}).t
+
+
+> db.log.find( {'t': {$exists: true}}, {t: true}).sort({'t':1}).limit(100)
+start_of_first_hour = ISODate("2013-05-17T07:09:57Z")
+end_of_first_hour = ISODate("2013-05-17T07:10:57Z")
+
+
+> db.log.find( {'t': {'$lt': end_of_first_hour}}, {t: true}).sort({'t':1})
+
+#######################below is work to try to answer #9
+
+> db.log.find('t', {$and: [{'t': {'$lt': end_of_first_hour}}, {'t': {'$gt': start_of_first_hour}} ]})
+
+
+{'$lt': end_of_first_hour}}, {t: true}).sort({'t':1})
+
+{'t': {'$lt': end_of_first_hour}
+{'t': {'$gt': start_of_first_hour}
